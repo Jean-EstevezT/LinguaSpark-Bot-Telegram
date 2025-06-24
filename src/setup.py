@@ -9,6 +9,11 @@ REQUERIMENTS = [
 ]
 
 def installation():
+    """
+    Installation of the necessary dependencies to run the bot.
+        telegram: classes to interact with the telegram API
+        googletrans: Google Translator
+    """
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requeriments.txt"])
         print("Dependencies installed correctly :)")
