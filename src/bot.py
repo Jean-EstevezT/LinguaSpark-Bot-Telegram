@@ -8,6 +8,7 @@ TOKEN = "TELEGRAM TOKEN, from @BotFather"
 # -----------------------------------------------------------------------------
 # Logging settings
 logger = logging.getLogger(__name__)
+logging.basicConfig()
 
 
 def start() -> None:
