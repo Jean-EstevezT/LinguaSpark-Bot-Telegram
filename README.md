@@ -95,7 +95,7 @@ Plus: any plain text you send will get auto-translated to your selected language
 
 I’m Jean Estevez
 
-* Twitter: [@jeantvz](https://twitter.com/jeantvz)
+* Twitter: [@jeantvz](https://x.com/jeantvz)
 * GitHub: [Jean-EstevezT](https://github.com/Jean-EstevezT)
 
 ---
