@@ -11,7 +11,7 @@ Version: 1.0
 Author: Jean Estevez
 X: @jeantvz
 Github: https://github.com/Jean-EstevezT
-Description: Real-time text translation using Google Translate API
+Description: Real-time text translation using deep-translator
 
 Features:
 🌍 Supports 100+ languages
@@ -27,27 +27,44 @@ Usage:
 
 Requirements:
 - python-telegram-bot
-- googletrans==4.0.0-rc1
+- deep-translator
 
 Note: Replace 'TELEGRAM TOKEN, from @BotFather' with your actual Telegram bot token
 ---------------------------------------------------------------
 """
 
 import logging
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext, CallbackQueryHandler
-from googletrans import Translator, LANGUAGES
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    CallbackContext,
+    CallbackQueryHandler
+)
+from deep_translator import GoogleTranslator
 
-TOKEN = "7708878741:AAGnYHF4Io15gXSIzxX0Q8ZWN1kQ9nKtgiU"
-
-# initialize translator
-translator = Translator()  
+TOKEN = "TELEGRAM TOKEN, from @BotFather"
+LANGUAGES = {
+    'en': 'English',
+    'es': 'Spanish',
+    'fr': 'French',
+    'de': 'German',
+    'it': 'Italian',
+    'pt': 'Portuguese',
+    'ru': 'Russian',
+    'zh': 'Chinese',
+    'ja': 'Japanese'
+    # You can add more
+}
 
 # -----------------------------------------------------------------------------
 # Logging settings
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    format ='%(actime)s - %(name)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level = logging.INFO,
     handlers = [
         logging.FileHandler("translation_bot_INFO.log"),
@@ -58,47 +75,111 @@ logging.basicConfig(
 # -----------------------------------------------------------------------------
 # Bot Commands
 
-def start() -> None:
+async def start(update: Update, context: CallbackContext) -> None:
     # /start command
-    user = Update.effective_user
-    logger.info(f"User {user.id} start conversation")
+    user = update.effective_user
 
-    Update.message.reply_text(
-        f""" Hi *{user.first_name}!* I am *LinguaSpark* Bot\n\n
-        - Send me any text and I'll translate it automatically\n
-        - Use */lang* to change the target language(default: English)\n
-        - */help* for assistence
-        """)
+    welcome_text = (
+        f"Hello <b>{user.first_name}</b>! I'm <b>LinguaSpark Bot</b> 🌍\n\n"
+        "Send me any text and I’ll translate it instantly.\n\n"
+        "Use the buttons below to access features:"
+    )
 
-def help_command(update: Update, context: CallbackContext) -> None:
+    keyboard = [
+        [InlineKeyboardButton("🌐 Change Language", callback_data='command_lang')],
+        [InlineKeyboardButton("ℹ️ Info", callback_data='command_info')],
+        [InlineKeyboardButton("❓ Help", callback_data='command_help')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text(
+        welcome_text,
+        parse_mode="HTML",
+        reply_markup=reply_markup
+    )
+
+async def send_lang_menu(query, context):
+    keyboard = []
+    lang_list = list(LANGUAGES.items())
+
+    for i in range(0, len(lang_list), 3):
+        row = [InlineKeyboardButton(name, callback_data=code)
+               for code, name in lang_list[i:i + 3]]
+        keyboard.append(row)
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(
+        "Please select your target language:",
+        reply_markup=reply_markup,
+        parse_mode="HTML"
+    )
+
+async def send_info_message(query, context):
+    target_language = context.user_data.get('target_language', 'en')
+    language_name = LANGUAGES.get(target_language, 'English')
+
+    await query.edit_message_text(
+        f"<b>Current Settings:</b>\nTarget Language: <b>{language_name}</b> ({target_language})",
+        parse_mode="HTML"
+    )
+
+async def send_help_message(query, context):
+    help_text = """
+    <b>📘 Help — LinguaSpark Bot</b>
+
+    <b>Available Commands:</b>
+    <code>/lang</code> – Change target language  
+    <code>/info</code> – Show current settings  
+    <code>/help</code> – Display this help message  
+
+    <b>Features:</b>
+    – Supports 100+ languages  
+    – Instant translation  
+    – User-specific preferences  
+    – Interactive interface  
+
+    <b>👤 Author:</b> Jean Estevez
+    """
+    await query.edit_message_text(help_text, parse_mode="HTML")
+
+async def start_menu_callback(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == 'command_lang':
+        await send_lang_menu(query, context)
+    elif query.data == 'command_info':
+        await send_info_message(query, context)
+    elif query.data == 'command_help':
+        await send_help_message(query, context)
+
+
+async def help_command(update: Update, context: CallbackContext) -> None:
     # /help command
     help_text = """
-        XD *Help* For LinguaSpark Bot :P
+    <b> Help — LinguaSpark Bot</b>
 
-        Available Functions:
-        - Just Type text and I will translate it
-        - /lang - Change language
-        - /info - View current language
-        - /help - This help  
+    <b>Available Commands:</b>
+    <code>/lang</code> – Change target language  
+    <code>/info</code> – Show current settings  
+    <code>/help</code> – Display this help message  
 
-        Feautres:
-        - Supports +100 languages
-        - Instant Translation
-        - Interactive Interface
+    <b>Features:</b>
+    – Supports 100+ languages  
+    – Instant translation  
+    – User-specific preferences  
+    – Interactive interface  
 
-        -----------------------------------------
-        Jean Estevez
-        https://github.com/Jean-EstevezT
-
+    <b>👤 Author:</b> Jean Estevez
     """
-    update.message.reply_text(help_text, parse_mode="Markdown")
+    await update.message.reply_text(help_text, parse_mode="HTML")
+    logger.info(f"User {update.effective_user.id} requested help")
 
-
-def lang_command(update: Update, context: CallbackContext) -> None:
+async def lang_command(update: Update, context: CallbackContext) -> None:
     # /lang command and Lenguage selection
     keyboard = []
-    top_langs = ['en', 'es', 'fr', 'fr', 'de', 'it', 'pt', 'ru', 'zh-cn', 'ja']
-    lang_list = [(code, LANGUAGES[code]) for code in top_langs]
+    lang_list = list(LANGUAGES.items())
 
     for i in range(0, len(lang_list), 3):
         row = [InlineKeyboardButton(lang[1], callback_data=lang[0])
@@ -106,49 +187,44 @@ def lang_command(update: Update, context: CallbackContext) -> None:
         keyboard.append(row)
 
     # Button to see all languuages
-    keyboard.append([InlineKeyboardButton("All *Languages*", callback_data='show all')])
+    keyboard.append([InlineKeyboardButton("All Languages", callback_data='show all')])
     
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    update.message.reply_text("*Select Lenguage*:...", reply_markup=reply_markup, parse_mode="Markdown")
-    
+    await update.message.reply_text("Please select your target language:",
+                                reply_markup=reply_markup,
+                                parse_mode="HTML")
+
     logger.info(f'User {update.effective_user.id} requested lenguage change ;)')
 
 
-def lang_callback(update: Update, context: CallbackContext) -> None:
+async def lang_callback(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
-    query.answer()
+    await query.answer()
 
     language_code = query.data
     user_id = query.from_user.id
 
-    if language_code == 'show_all':
-        # print all languages
-        all_languages = '\n'.join([f'{code}: {name}' for code, name in LANGUAGES.items()])
-        query.edit_message_text(f"*Available Languages:* \n\n {all_languages} \n\nUse /lang to select", 
-                                parse_mode='Markdown')
-        
-        logger.info(f'User {user_id} requested full language list')
-
-        return
-    # Save select language
     context.user_data['target_language'] = language_code
-    language_name = LANGUAGES.get(language_code, 'unknown')
+    language_name = LANGUAGES.get(language_code, 'Unknown')
 
-    query.edit_message_text(f'New *Language*: {language_name}', parse_mode='Markdown')
-    logger.info(f'User {user_id} change lenguage to {language_name} ({language_code})')
+    await query.edit_message_text(f"Target language changed to: <b>{language_name}</b>",
+                                  parse_mode="HTML")
+    logger.info(f'User {user_id} set language to {language_name} ({language_code})')
 
-def info_command(update: Update, context: CallbackContext) -> None:
+async def info_command(update: Update, context: CallbackContext) -> None:
     # /info command = show settings
     user_id = update.effective_user.id
-    target_language = context.user_data.get('Target Language', 'en')
+    target_language = context.user_data.get('target_language', 'en')
     language_name = LANGUAGES.get(target_language, 'English')
 
-    update.message.reply_text(f'*Current Settings:*\n\nTarget Language: *{language_name}* {target_language}',
-                              parse_mode='Markdown')
-    logger.info(f'User {user_id} requested setting info')
+    await update.message.reply_text(
+        f"<b>Current Settings:</b>\nTarget Language: <b>{language_name}</b> ({target_language})",
+        parse_mode="HTML"
+    )
+    logger.info(f'User {user_id} requested settings info')
 
-def translate_message(update: Update, context: CallbackContext) -> None:
+async def translate_message(update: Update, context: CallbackContext) -> None:
     user_text = update.message.text
     user_id = update.effective_user.id
     
@@ -157,53 +233,60 @@ def translate_message(update: Update, context: CallbackContext) -> None:
     target_language = context.user_data.get('target_language', 'en')
 
     try:
-        translation = translator.translate(user_text, dest=target_language)
-
-        response = (
-            f'*Original ({translation.src.upper()}): *\n{user_text}\n\n'
-            f'*Translation ({target_language.upper()}): *\n{translation.text}'
+        loop = asyncio.get_running_loop()
+        translated_text = await loop.run_in_executor(
+            None,
+            lambda: GoogleTranslator(target=target_language).translate(user_text)
         )
 
-        update.message.reply_text(response, parse_mode='Markdown')
-        logger.info(f'Successful translation for {user_id}: {translation.src} -> {target_language}')
-    except Exception as error:
-        error_message = 'Translation ERROR. Please try again'
-        update.message.reply_text(error_message)
+        response = (
+            f"<b>Original:</b>\n{user_text}\n\n"
+            f"<b>Translation ({target_language.upper()}):</b>\n{translated_text}"
+        )
 
+        await update.message.reply_text(response, parse_mode="HTML")
+        logger.info(f'Successful translation for {user_id} to {target_language}')
+    
+    except Exception as error:
+        error_message = 'Translation error. Please try again.'
+        await update.message.reply_text(error_message)
         logger.error(f'Translation error: {str(error)}', exc_info=True)
 
-def error_handler(update: Update, context: CallbackContext) -> None:
+async def error_handler(update: Update, context: CallbackContext) -> None:
     logger.error(f'Error: {context.error}', exc_info=True)
 
-    if update and update.message:
-        update.message.reply_text('An Unexpected error, Please try again.')
+    try:
+        if update and update.message:
+            await update.message.reply_text('An unexpected error occurred. Please try again.')
+    except Exception as e:
+        logger.error(f"Error in error handler: {e}")
 
 def main() -> None:
-    # Configure logger
-    logger.setLevel(logging.INFO)
-
-    # Create UPDATER with TOKEN
-    updater = Updater(TOKEN)
+    application = Application.builder().token(TOKEN).build()
     
-    register_commands = updater.dispatcher
-    register_commands.add_handler(CommandHandler('start', start))
-    register_commands.add_handler(CommandHandler('help', help_command))
-    register_commands.add_handler(CommandHandler('lang', lang_command))
-    register_commands.add_handler(CommandHandler('info', info_command))
+    application.add_handler(CallbackQueryHandler(start_menu_callback, pattern='^command_'))
 
-    # handle language selection
-    register_commands.add_handler(CallbackQueryHandler(lang_command))
+    # Register commands
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler('help', help_command))
+    application.add_handler(CommandHandler('lang', lang_command))
+    application.add_handler(CommandHandler('info', info_command))
 
-    # handle text messages
-    register_commands.add_handler(MessageHandler(filters.text & ~filters.command, translate_message))
+    # Handle language selection
+    application.add_handler(CallbackQueryHandler(lang_callback))
 
-    # handle errors
-    register_commands.add_error_handler(error_handler)
+    # Handle text messages
+    application.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND, 
+        translate_message
+    ))
+
+    # Handle errors
+    application.add_error_handler(error_handler)
 
     # Start BOT
     logger.info('Starting Translation Bot...')
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
