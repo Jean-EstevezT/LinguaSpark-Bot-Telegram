@@ -32,7 +32,7 @@ Note: Replace 'TELEGRAM TOKEN, from @BotFather' with your actual Telegram bot to
 
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext, CallbackQueryHandler
 from googletrans import Translator, LANGUAGES
 
 TOKEN = "TELEGRAM TOKEN, from @BotFather"
@@ -192,7 +192,7 @@ def main() -> None:
     register_commands.add_handler(CallbackQueryHandler(lang_command))
 
     # handle text messages
-    register_commands.add_handler(MessageHandler(Filters.text & ~Filters.command, translate_message))
+    register_commands.add_handler(MessageHandler(filters.text & ~filters.command, translate_message))
 
     # handle errors
     register_commands.add_error_handler(error_handler)
