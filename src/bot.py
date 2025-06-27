@@ -3,11 +3,14 @@
 
 """
 Telegram Translation Bot
-🤖 LinguaSpark 🤖
+🤖 LinguaTranslateSpark 🤖
+
+t.me/LinguaTranslateSparkBot
 ---------------------------
 Version: 1.0
 Author: Jean Estevez
-Github https://github.com/Jean-EstevezT
+X: @jeantvz
+Github: https://github.com/Jean-EstevezT
 Description: Real-time text translation using Google Translate API
 
 Features:
@@ -35,7 +38,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext, CallbackQueryHandler
 from googletrans import Translator, LANGUAGES
 
-TOKEN = "TELEGRAM TOKEN, from @BotFather"
+TOKEN = "7708878741:AAGnYHF4Io15gXSIzxX0Q8ZWN1kQ9nKtgiU"
 
 # initialize translator
 translator = Translator()  
