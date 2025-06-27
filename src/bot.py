@@ -1,3 +1,35 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Telegram Translation Bot
+🤖 LinguaSpark 🤖
+---------------------------
+Version: 1.0
+Author: Jean Estevez
+Github https://github.com/Jean-EstevezT
+Description: Real-time text translation using Google Translate API
+
+Features:
+🌍 Supports 100+ languages
+⚡ Instant translation of any text
+🔄 Interactive language selection
+📊 User-specific language preferences
+
+Usage:
+1. Start the bot with /start
+2. Send any text to get automatic translation
+3. Use /lang to change target language
+4. Use /info to check current settings
+
+Requirements:
+- python-telegram-bot
+- googletrans==4.0.0-rc1
+
+Note: Replace 'TELEGRAM TOKEN, from @BotFather' with your actual Telegram bot token
+---------------------------------------------------------------
+"""
+
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
@@ -53,6 +85,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
 
         -----------------------------------------
         Jean Estevez
+        https://github.com/Jean-EstevezT
 
     """
     update.message.reply_text(help_text, parse_mode="Markdown")
