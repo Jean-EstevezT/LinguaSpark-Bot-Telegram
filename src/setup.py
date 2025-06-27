@@ -4,7 +4,7 @@ import os
 
 REQUERIMENTS = [
     'python-telegram-bot==20.3',
-    'googletrans==4.0.0-rc1',   
+    'deep-translator',   
     'python-dotenv==1.0.0' 
 ]
 
@@ -12,7 +12,7 @@ def installation():
     """
     Installation of the necessary dependencies to run the bot.
         telegram: classes to interact with the telegram API
-        googletrans: Google Translator
+        deep-translator
     """
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requeriments.txt"])
